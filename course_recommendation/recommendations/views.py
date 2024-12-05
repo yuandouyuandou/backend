@@ -55,11 +55,6 @@ def recommend_courses(request):
                 'major': student_major
             }
 
-            def find_class(module, name):
-                if name == "Args":
-                    return Args
-                raise AttributeError(f"Module {module} does not have class {name}")
-
             def download_from_s3(file_key):
                 response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
                 return response['Body'].read()
@@ -67,7 +62,6 @@ def recommend_courses(request):
             def load_mapping_data(file_key):
                 mapping_data_bytes = download_from_s3(file_key)
                 return pickle.loads(mapping_data_bytes, fix_imports=True, encoding="bytes", errors="strict", object_hook=None, find_class=find_class)
-                
             mapping_data = load_mapping_data('mapping_data.pkl')
             sasrec_weights = download_from_s3('sasrec_weights.weights.h5')
 
@@ -75,7 +69,7 @@ def recommend_courses(request):
             itemnum = metadata["itemnum"]
             gradenum = metadata["gradenum"]
             vocab_size = metadata["vocab_size"]
-            args = metadata["args"]
+            args = Args()
             course_id_to_idx = metadata["course_id_to_idx"]
             course_data = metadata["course_data"]
 
