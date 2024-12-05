@@ -1,6 +1,9 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+import boto3
+
+sagemaker_runtime_client = boto3.client('sagemaker-runtime')
 
 @csrf_exempt
 def recommend_courses(request):
@@ -49,12 +52,16 @@ def recommend_courses(request):
                 'major': student_major
             }
 
-            recommended_course_ids = call_recommendation_model(
-                student_class, 
-                student_major, 
-                student_interest, 
-                courses_taken
+            payload = json.dumps(student_data)
+            response = sagemaker_runtime_client.invoke_endpoint(
+                EndpointName='your-sagemaker-endpoint-name',  # 使用实际的 SageMaker 端点名称
+                ContentType='application/json',
+                Body=payload
             )
+
+            result = json.loads(response['Body'].read().decode())
+            recommended_course_ids = result.get('recommended_course_ids', [])
+
 
             return JsonResponse({"recommended_course_ids": recommended_course_ids}, status=200)
 

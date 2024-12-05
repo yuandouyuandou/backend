@@ -38,7 +38,7 @@ class Student(models.Model):
 
     grade = models.IntegerField(choices=GRADE_CHOICES, null=True, blank=True)
     major = models.CharField(max_length=20, choices=MAJOR_CHOICES, null=True, blank=True)
-    interest = models.CharField(max_length=20, choices=INTEREST_CHOICES, null=True, blank=True)
+    interest = models.CharField(max_length=80, choices=INTEREST_CHOICES, null=True, blank=True)
 
     def __str__(self):
         return f"Student ({self.grade}, {self.major}, {self.interest})"
