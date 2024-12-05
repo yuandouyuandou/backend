@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import pickle
 from .models import Args, SASRecTrainer
+import io
 
 s3_client = boto3.client('s3')
 bucket_name = 'cs583-source-data'
@@ -59,7 +60,7 @@ def recommend_courses(request):
                 response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
                 return response['Body'].read()
             mapping_data = pickle.loads(download_from_s3('mapping_data.pkl'))
-            sasrec_weights = download_from_s3('sasrec_weights.weights.h5')
+            sasrec_weights_bytes = download_from_s3('sasrec_weights.weights.h5')
 
 
             itemnum = mapping_data["itemnum"]
@@ -74,7 +75,8 @@ def recommend_courses(request):
             )
 
             # Load pre-trained weights
-            trainer.model.load_weights("sasrec_weights")
+            sasrec_weights_io = io.BytesIO(sasrec_weights_bytes)
+            trainer.model.load_weights(sasrec_weights_io)
             recommendations = trainer.recommend(student_data, course_data, num_recommendations=10)
 
             recommended_course_ids = []
