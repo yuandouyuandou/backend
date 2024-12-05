@@ -58,11 +58,7 @@ def recommend_courses(request):
             def download_from_s3(file_key):
                 response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
                 return response['Body'].read()
-
-            def load_mapping_data(file_key):
-                mapping_data_bytes = download_from_s3(file_key)
-                return pickle.loads(mapping_data_bytes, fix_imports=True, encoding="bytes", errors="strict", object_hook=None, find_class=find_class)
-            mapping_data = load_mapping_data('mapping_data.pkl')
+            mapping_data = pickle.loads(download_from_s3('mapping_data.pkl'))
             sasrec_weights = download_from_s3('sasrec_weights.weights.h5')
 
 
