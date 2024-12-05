@@ -6,17 +6,10 @@ import tensorflow as tf
 import numpy as np
 import pandas as pd
 import pickle
+from model import Args
 
 s3_client = boto3.client('s3')
 bucket_name = 'cs583-source-data'
-
-class Args:
-    maxlen = 50           # Maximum length of user history sequence
-    hidden_units = 50     # Dimension of hidden layers
-    dropout_rate = 0.2    # Dropout rate
-    num_blocks = 2        # Number of Transformer blocks
-    num_heads = 5         # Number of heads in multi-head attention
-    lr = 0.001            # Learning rate
 
 @csrf_exempt
 def recommend_courses(request):
