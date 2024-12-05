@@ -1,4 +1,13 @@
 from django.db import models
+import tensorflow as tf
+import numpy as np
+import pandas as pd
+import re
+import pickle
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import CountVectorizer
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 class Student(models.Model):
     GRADE_CHOICES = [(i, f'Grade {i}') for i in range(1, 6)]
