@@ -11,6 +11,11 @@ from .models import Args, SASRecTrainer
 s3_client = boto3.client('s3')
 bucket_name = 'cs583-source-data'
 
+def find_class(module, name):
+    if name == "Args":
+        return Args
+    raise AttributeError(f"Module {module} does not have class {name}")
+
 @csrf_exempt
 def recommend_courses(request):
     if request.method == "POST":
