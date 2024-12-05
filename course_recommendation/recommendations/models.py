@@ -347,22 +347,6 @@ def generate_data(student_data, course_grades, course_text_indices, args, max_te
             np.array(pos, dtype=np.int32)
         )
 
-
-# generate training set
-train_inputs_seq, train_inputs_grades, train_inputs_contents, train_pos, train_neg = generate_data(
-    student_data, course_grades, course_text_indices, args, max_text_len, is_train=True
-)
-
-# generate test set
-test_inputs_seq, test_inputs_grades, test_inputs_contents, test_pos = generate_data(
-    student_data, course_grades, course_text_indices, args, max_text_len, is_train=False
-)
-
-# Check shapes
-print(f"Size of training set：{train_inputs_seq.shape}, {train_inputs_grades.shape}, {train_inputs_contents.shape}, {train_pos.shape}, {train_neg.shape}")
-print(f"Size of testing set：{test_inputs_seq.shape}, {test_inputs_grades.shape}, {test_inputs_contents.shape}, {test_pos.shape}")
-
-
 # 6. Define training and recommendation functions
 # Helper function: calculate keyword match score
 def calculate_keyword_match_score(course_keywords, student_interest):
