@@ -62,12 +62,12 @@ def recommend_courses(request):
             sasrec_weights = download_from_s3('sasrec_weights.weights.h5')
 
 
-            itemnum = metadata["itemnum"]
-            gradenum = metadata["gradenum"]
-            vocab_size = metadata["vocab_size"]
+            itemnum = mapping_data["itemnum"]
+            gradenum = mapping_data["gradenum"]
+            vocab_size = mapping_data["vocab_size"]
             args = Args()
-            course_id_to_idx = metadata["course_id_to_idx"]
-            course_data = metadata["course_data"]
+            course_id_to_idx = mapping_data["course_id_to_idx"]
+            course_data = mapping_data["course_data"]
 
             trainer = SASRecTrainer(
                 usernum=200, itemnum=itemnum, gradenum=gradenum, vocab_size=vocab_size, args=args, mode="inference"
