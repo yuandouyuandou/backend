@@ -9,55 +9,6 @@ from sklearn.feature_extraction.text import CountVectorizer
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-class Student(models.Model):
-    GRADE_CHOICES = [(i, f'Grade {i}') for i in range(1, 6)]
-    MAJOR_CHOICES = [('amath', 'Applied Mathematics'), ('math', 'Mathematics'), ('ece', 'Electrical and Computer Engineering'), ('cse', 'Computer Science and Engineering')]
-    INTEREST_CHOICES = [
-    ('computation', 'Computation & Scientific Computing'),
-    ('differential_eq', 'Differential Equations & Dynamical Systems'),
-    ('optimization', 'Optimization'),
-    ('algebra', 'Algebra & Abstract Algebra'),
-    ('probability', 'Probability & Stochastic Processes'),
-    ('topology', 'Topology & Geometry'),
-    ('analysis', 'Analysis & Real Analysis'),
-    ('complex_analysis', 'Complex Analysis & Complex Variables'),
-    ('math_modeling', 'Mathematical Modeling'),
-    ('math_biology', 'Mathematical Biology'),
-    ('numerical_analysis', 'Numerical Analysis'),
-    ('combinatorics', 'Combinatorics & Discrete Mathematics'),
-    ('computer_math', 'Computer-Aided Mathematics'),
-    ('discrete_math', 'Discrete Mathematics & Graph Theory'),
-    ('math_education', 'Mathematics Education & Career Development'),
-    ('hardware_architecture', 'Computer Hardware & Architecture'),
-    ('signal_processing', 'Signal Processing & Communication'),
-    ('control_systems', 'Control Systems & Optimization'),
-    ('embedded_systems', 'Embedded & Real-Time Systems'),
-    ('bioengineering', 'Bioengineering & Neural Engineering'),
-    ('quantum_computing', 'Quantum Computing & Information'),
-    ('computer_vision', 'Computer Vision & Image Processing'),
-    ('ai_ml', 'Artificial Intelligence & Machine Learning'),
-    ('data_science', 'Data Science & Data Engineering'),
-    ('hci_ux', 'Human-Computer Interaction & UI/UX'),
-    ('networks_security', 'Computer Networks & Security'),
-    ('software_dev', 'Software Development & Engineering'),
-    ('database_management', 'Database & Data Management'),
-    ('robotics', 'Robotics & Automation'),
-    ('power_systems', 'Power Systems & Energy Engineering')
-    ]
-
-    grade = models.IntegerField(choices=GRADE_CHOICES, null=True, blank=True)
-    major = models.CharField(max_length=20, choices=MAJOR_CHOICES, null=True, blank=True)
-    interest = models.CharField(max_length=80, choices=INTEREST_CHOICES, null=True, blank=True)
-
-    def __str__(self):
-        return f"Student ({self.grade}, {self.major}, {self.interest})"
-
-class Course(models.Model):
-    course_id = models.IntegerField(unique=True)
-    name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.name
 
 class Args:
     maxlen = 50           # Maximum length of user history sequence
@@ -68,6 +19,81 @@ class Args:
     lr = 0.001            # Learning rate
 
 args = Args()
+
+course_info = pd.read_excel("/home/ubuntu/backend/course_recommendation/recommendations/UW_Courses_with_keywords.xlsx")      # Includes 'Course ID', 'Course Name', 'Key Words'
+student_info = pd.read_excel("/home/ubuntu/backend/course_recommendation/recommendations/students_interest.xlsx")            # Includes 'StudentID', 'Interest_1', 'Interest_2', 'history Courses'
+student_grades = pd.read_excel("/home/ubuntu/backend/course_recommendation/recommendations/students_info.xlsx")              # Includes 'StudentID', 'Grade', 'Major'
+
+# Merge student information
+merged_data = pd.merge(student_grades, student_info, on="StudentID")
+
+# Create mapping from course IDs to indices
+all_course_ids = course_info['Course ID'].astype(str).unique().tolist()
+all_course_ids = [standardize_course_id(cid) for cid in all_course_ids]
+
+course_id_to_idx = {course_id: idx+1 for idx, course_id in enumerate(all_course_ids)}  # Reserve 0 for padding
+idx_to_course_id = {idx+1: course_id for idx, course_id in enumerate(all_course_ids)}
+itemnum = len(course_id_to_idx)  # Update itemnum
+
+# Save course_id_to_idx
+with open("course_id_to_idx.pkl", "wb") as f:
+    pickle.dump(course_id_to_idx, f)
+
+# Extract course grade information, assuming course ID format like 'CSE 400', grade is the first digit
+def extract_grade(cid):
+    parts = cid.split()
+    if len(parts) > 1 and parts[1][0].isdigit():
+        return int(parts[1][0])  # Use the hundreds place digit as grade
+    else:
+        return 0  # Set to 0 if grade cannot be extracted
+
+# Create mapping from grades to indices
+all_grades = set()
+course_grades = {}
+for cid in all_course_ids:
+    grade = extract_grade(cid)
+    all_grades.add(grade)
+    course_grades[cid] = grade
+
+grade_to_idx = {grade: idx+1 for idx, grade in enumerate(sorted(all_grades))}
+idx_to_grade = {idx+1: grade for idx, grade in enumerate(sorted(all_grades))}
+gradenum = len(grade_to_idx) + 2  # +2 to reserve space for unknown grades and padding
+
+# Preprocess course text content (using only keywords)
+# Use course keywords as text content
+course_info['Text Content'] = course_info['Key Words'].astype(str)
+
+# Text preprocessing
+def preprocess_text(text):
+    # Convert to lowercase
+    text = text.lower()
+    # Remove punctuation and non-letter characters
+    text = re.sub(r'[^a-zA-Z\s]', '', text)
+    # Remove extra spaces
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
+# Preprocess text content for all courses
+course_info['Processed Text'] = course_info['Text Content'].apply(preprocess_text)
+
+# Build vocabulary
+all_text = course_info['Processed Text'].tolist()
+tokenizer = Tokenizer()
+tokenizer.fit_on_texts(all_text)
+word_index = tokenizer.word_index
+vocab_size = len(word_index) + 1  # Vocabulary size (+1 because index starts from 1, 0 is reserved for padding)
+
+# Convert course text to word index sequences
+course_sequences = tokenizer.texts_to_sequences(course_info['Processed Text'])
+
+# Set maximum text length (e.g., 95th percentile of course text lengths)
+max_text_len = np.percentile([len(seq) for seq in course_sequences], 95)
+max_text_len = int(max_text_len)
+if max_text_len == 0:
+    max_text_len = 1  # Ensure maximum text length is at least 1
+
+# Pad or truncate sequences
+course_padded_sequences = pad_sequences(course_sequences, maxlen=max_text_len, padding='post', truncating='post')
 
 class SASRecTrainer:
     def __init__(self, usernum, itemnum, gradenum, vocab_size, args, mode="inference"):
