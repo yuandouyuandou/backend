@@ -55,12 +55,11 @@ def recommend_courses(request):
                 'Grade': student_class, 
                 'Major': student_major
             }])
-
+            print(student_data)
             def download_from_s3(file_key):
                 response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
                 return response['Body'].read()
             mapping_data = pickle.loads(download_from_s3('mapping_data.pkl'))
-
 
             itemnum = mapping_data["itemnum"]
             gradenum = mapping_data["gradenum"]
@@ -68,9 +67,9 @@ def recommend_courses(request):
             args = Args()
             course_id_to_idx = mapping_data["course_id_to_idx"]
             course_data = mapping_data["course_data"]
-
+            print(course_id_to_idx)
             processed_new_students = process_student_data(student_data, course_id_to_idx)
-
+            print(processed_new_students)
             trainer = SASRecTrainer(
                 usernum=200, itemnum=itemnum, gradenum=gradenum, vocab_size=vocab_size, args=args, mode="inference"
             )
