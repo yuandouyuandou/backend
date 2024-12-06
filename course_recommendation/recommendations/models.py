@@ -581,3 +581,29 @@ class SASRecTrainer:
             num_recommendations: Number of recommendations per student.
         """
         return recommend_courses(self.model, student_data, course_data, num_recommendations)
+
+def process_student_data(merged_data, course_id_to_idx):
+
+    student_data = []
+
+    for _, row in merged_data.iterrows():
+        history_course_ids = [standardize_course_id(cid) for cid in str(row['Courses']).split(', ')]
+
+        history_courses = []
+        for cid in history_course_ids:
+            if cid in course_id_to_idx:
+                history_courses.append(course_id_to_idx[cid])
+            else:
+                print(f"Unmapped course ID {cid} for student {row['StudentID']}")
+
+        student_entry = {
+            'id': row['StudentID'],
+            'history_courses': history_courses,
+            'interest_1': row.get('Interest_1', ''),
+            'interest_2': row.get('Interest_2', ''),
+            'grade': row.get('Grade', ''),
+            'major': row.get('Major', '')
+        }
+        student_data.append(student_entry)
+
+    return student_data

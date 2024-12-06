@@ -6,7 +6,7 @@ import tensorflow as tf
 import numpy as np
 import pandas as pd
 import pickle
-from .models import Args, SASRecTrainer
+from .models import Args, SASRecTrainer, process_student_data
 import io
 
 s3_client = boto3.client('s3')
@@ -47,14 +47,16 @@ def recommend_courses(request):
             if len(student_interest) == 1:
                 student_interest.append('')
 
-            student_data = {
-                'id': student_id,
-                'history_courses': courses_taken, 
-                'interest_1': student_interest[0], 
-                'interest_2': student_interest[1], 
-                'grade': student_class, 
-                'major': student_major
-            }
+            student_data = pd.DataFrame([{
+                'StudentID': student_id,
+                'Courses': courses_taken, 
+                'Interest_1': student_interest[0], 
+                'Interest_2': student_interest[1], 
+                'Grade': student_class, 
+                'Major': student_major
+            }])
+
+            processed_new_students = process_student_data(student_data, course_id_to_idx)
 
             def download_from_s3(file_key):
                 response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
@@ -75,7 +77,7 @@ def recommend_courses(request):
 
             # Load pre-trained weights
             trainer.model.load_weights('/home/ubuntu/backend/course_recommendation/recommendations/sasrec_weights')
-            recommendations = trainer.recommend(student_data, course_data, num_recommendations=10)
+            recommendations = trainer.recommend(processed_new_students, course_data, num_recommendations=10)
 
             recommended_course_ids = []
             for student_id, courses in recommendations:
