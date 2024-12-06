@@ -74,7 +74,7 @@ def recommend_courses(request):
             )
 
             # Load pre-trained weights
-            trainer.model.load_weights("sasrec_weights.weights.h5")
+            trainer.model.load_weights('sasrec_weights')
             recommendations = trainer.recommend(student_data, course_data, num_recommendations=10)
 
             recommended_course_ids = []
