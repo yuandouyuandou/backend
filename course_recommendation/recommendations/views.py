@@ -46,8 +46,9 @@ def recommend_courses(request):
 
             if len(student_interest) == 1:
                 student_interest.append('')
+            courses_taken = ", ".join(courses_taken)
             print(courses_taken)
-            print(type(courses_taken))
+
             student_data = pd.DataFrame([{
                 "StudentID": student_id,
                 "Courses": courses_taken, 
