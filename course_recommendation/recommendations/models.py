@@ -98,6 +98,18 @@ if max_text_len == 0:
 # Pad or truncate sequences
 course_padded_sequences = pad_sequences(course_sequences, maxlen=max_text_len, padding='post', truncating='post')
 
+course_text_indices = {}
+for idx, row in course_info.iterrows():
+    cid = standardize_course_id(str(row['Course ID']))
+    if cid in course_id_to_idx:
+        course_idx = course_id_to_idx[cid]
+        course_text_indices[course_idx] = course_padded_sequences[idx]
+    else:
+        print(f"Course ID {cid} not found in course_id_to_idx.")
+
+# Create mapping array from course indices to grade indices
+course_idx_to_grade_idx = np.zeros(itemnum + 1, dtype=np.int32)  # Indices from 0 to itemnum
+
 class SASRecTrainer:
     def __init__(self, usernum, itemnum, gradenum, vocab_size, args, mode="inference"):
         """
