@@ -55,7 +55,8 @@ def recommend_courses(request):
                 'Grade': student_class, 
                 'Major': student_major
             }])
-            print(student_data)
+            print(courses_taken)
+
             def download_from_s3(file_key):
                 response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
                 return response['Body'].read()
@@ -67,7 +68,6 @@ def recommend_courses(request):
             args = Args()
             course_id_to_idx = mapping_data["course_id_to_idx"]
             course_data = mapping_data["course_data"]
-            print(course_id_to_idx)
             processed_new_students = process_student_data(student_data, course_id_to_idx)
             print(processed_new_students)
             trainer = SASRecTrainer(
