@@ -587,7 +587,7 @@ def process_student_data(merged_data, course_id_to_idx):
     student_data = []
 
     for _, row in merged_data.iterrows():
-        history_course_ids = [cid.strip().upper(cid) for cid in str(row['Courses']).split(', ')]
+        history_course_ids = [cid.strip().upper() for cid in str(row['Courses']).split(', ')]
 
         history_courses = []
         for cid in history_course_ids:
