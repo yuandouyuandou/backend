@@ -27,6 +27,9 @@ student_grades = pd.read_excel("/home/ubuntu/backend/course_recommendation/recom
 # Merge student information
 merged_data = pd.merge(student_grades, student_info, on="StudentID")
 
+def standardize_course_id(cid):
+    return cid.strip().upper()
+
 # Create mapping from course IDs to indices
 all_course_ids = course_info['Course ID'].astype(str).unique().tolist()
 all_course_ids = [standardize_course_id(cid) for cid in all_course_ids]
@@ -613,7 +616,7 @@ def process_student_data(merged_data, course_id_to_idx):
     student_data = []
 
     for _, row in merged_data.iterrows():
-        history_course_ids = [cid.strip().upper() for cid in str(row['Courses']).split(', ')]
+        history_course_ids = [standardize_course_id(cid) for cid in str(row['Courses']).split(', ')]
 
         history_courses = []
         for cid in history_course_ids:
