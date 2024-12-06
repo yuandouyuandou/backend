@@ -24,7 +24,7 @@ def recommend_courses(request):
             student_interest = data.get("interest", [])  
             courses_taken = data.get("coursesTaken", []) 
 
-            if not isinstance(student_class, int) or not (1 <= student_class <= 5):
+            if not isinstance(student_class, int) or not (0 <= student_class <= 4):
                 return JsonResponse({"error": "Invalid class value"}, status=400)
 
             if not isinstance(student_major, int) or not (0 <= student_major < 4):
