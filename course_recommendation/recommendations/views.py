@@ -46,14 +46,15 @@ def recommend_courses(request):
 
             if len(student_interest) == 1:
                 student_interest.append('')
-
+            print(courses_taken)
+            print(type(courses_taken))
             student_data = pd.DataFrame([{
-                'StudentID': student_id,
-                'Courses': courses_taken, 
-                'Interest_1': student_interest[0], 
-                'Interest_2': student_interest[1], 
-                'Grade': student_class, 
-                'Major': student_major
+                "StudentID": student_id,
+                "Courses": courses_taken, 
+                "Interest_1": student_interest[0], 
+                "Interest_2": student_interest[1], 
+                "Grade": student_class, 
+                "Major": student_major
             }])
 
             def download_from_s3(file_key):
