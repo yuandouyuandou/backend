@@ -55,7 +55,6 @@ def recommend_courses(request):
                 'Grade': student_class, 
                 'Major': student_major
             }])
-            print(courses_taken)
 
             def download_from_s3(file_key):
                 response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
